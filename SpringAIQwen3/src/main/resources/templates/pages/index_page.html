@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>系统首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: 'Inter', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #E8F0E9 0%, #D1E0D4 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            color: #2D5A4B;
+            margin-bottom: 28px;
+            font-size: 36px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 48px;
+            border-radius: 36px;
+            box-shadow: 0 20px 50px -15px #1f3b1f;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        p {
+            color: #1E3A2F;
+            font-size: 18px;
+            line-height: 1.7;
+            margin-bottom: 32px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        button {
+            padding: 16px 40px;
+            background: rgba(255, 255, 255, 0.3);
+            color: #1E3A2F;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 30, 10, 0.15);
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 20px;
+            }
+            h2 {
+                font-size: 28px;
+            }
+            .card {
+                padding: 32px;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>🎉 欢迎使用智能AI问答系统</h2>
+    <div class="card">
+        <p>本系统提供智能问答，流式问答，记忆问答，人脸注册等功能...</p>
+        <button onclick="alert('功能开发中，敬请期待')">立即体验</button>
+    </div>
+</div>
+</body>
+</html>

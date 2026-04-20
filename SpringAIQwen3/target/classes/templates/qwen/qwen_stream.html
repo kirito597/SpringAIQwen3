@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>流式对话</title>
+
+    <link rel="stylesheet" th:href="@{/css/element-ui.css}">
+    <script type="text/javascript" th:src="@{/js/vue.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/element-ui.js}"></script>
+    <script type="text/javascript" th:src="@{/js/axios.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/marked.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/purify.min.js}"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #E8F0E9 0%, #D1E0D4 100%);
+            height: 100vh;
+            font-family: 'Inter', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        .layout {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* 左侧栏 */
+        .sidebar {
+            width: 260px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-header .el-button {
+            width: 100%;
+            height: 44px;
+            border-radius: 30px !important;
+            background: rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            color: #1E3A2F !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header .el-button:hover {
+            background: rgba(255, 255, 255, 0.5) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 30, 10, 0.15) !important;
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 8px;
+        }
+
+        .chat-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #1E3A2F;
+            border-radius: 30px;
+            margin: 4px 0;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-item:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateX(4px);
+        }
+
+        .chat-item.active {
+            background: rgba(255, 255, 255, 0.45);
+            border-color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+        }
+
+        .ellipsis {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 主区域 */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navigation-bar {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navigation-bar .el-button {
+            border-radius: 30px !important;
+            background: rgba(160, 220, 160, 0.35) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            color: #1E3A2F !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .navigation-bar .el-button:hover {
+            background: rgba(255, 255, 255, 0.5) !important;
+            transform: translateY(-2px);
+        }
+
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 14px 20px;
+            border-radius: 24px;
+            word-wrap: break-word;
+            line-height: 1.6;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: rgba(46, 125, 80, 0.35);
+            backdrop-filter: blur(8px);
+            color: #1E3A2F;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-bottom-right-radius: 8px;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px);
+            color: #1E3A2F;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-bottom-left-radius: 8px;
+        }
+
+        /* Markdown 样式 */
+        .message h1, .message h2, .message h3 {
+            margin-top: 14px;
+            margin-bottom: 8px;
+            color: #1E3A2F;
+        }
+        .message p { margin: 8px 0; }
+        .message pre {
+            background: rgba(30, 40, 35, 0.8);
+            color: #f8f8f2;
+            padding: 12px;
+            border-radius: 16px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            backdrop-filter: blur(4px);
+        }
+        .message code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+        .message blockquote {
+            border-left: 3px solid rgba(46, 125, 80, 0.5);
+            margin: 12px 0;
+            padding-left: 16px;
+            color: #1E3A2F;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        #input-area {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper .el-textarea {
+            flex: 1;
+        }
+
+        .input-wrapper .el-textarea__inner {
+            min-height: 44px !important;
+            padding: 12px 20px !important;
+            resize: none;
+            background: rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            border-radius: 30px !important;
+            font-size: 15px;
+            color: #1E3A2F !important;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper .el-textarea__inner:focus {
+            background: rgba(255, 255, 255, 0.5) !important;
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .input-wrapper .el-textarea__inner::placeholder {
+            color: #4A6B5C !important;
+            opacity: 0.7;
+        }
+
+        .input-wrapper .el-button {
+            width: 90px;
+            height: 48px;
+            padding: 0;
+            font-size: 15px;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            color: #1E3A2F !important;
+            border-radius: 30px !important;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper .el-button:hover {
+            background: rgba(255, 255, 255, 0.5) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 30, 10, 0.15) !important;
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(46, 125, 80, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(46, 125, 80, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .message { max-width: 90%; }
+            #chat-container {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app" class="layout">
+    <!-- 左侧栏 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <el-button icon="el-icon-plus" @click="newChat">新建对话</el-button>
+        </div>
+        <div class="chat-list">
+            <div v-for="(chat, index) in chatList" :key="index"
+                 class="chat-item ellipsis"
+                 @click="switchChat(chat.id)">
+                {{ chat.question }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧主内容 -->
+    <div class="main">
+        <div class="navigation-bar">
+            <el-button>流式对话</el-button>
+        </div>
+        <div id="chat-container">
+            <div id="messages">
+                <div v-for="(msg, index) in messages" :key="index" class="message" :class="msg.role">
+                    <div v-if="msg.type === 'text'" v-html="renderMarkdown(msg.content)"></div>
+                </div>
+            </div>
+            <div id="input-area">
+                <div class="input-wrapper">
+                    <el-input
+                            type="textarea"
+                            v-model="message"
+                            placeholder="请输入消息..."
+                            :autosize="{ minRows: 1, maxRows: 4 }"
+                            @keydown.enter.native.prevent="ollamaStream"
+                    ></el-input>
+                    <el-button icon="el-icon-message" @click="ollamaStream">发送</el-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                message: "",
+                username: "",
+                messages: [
+                    { role: "assistant", type: "text", content: "你好，我是你的AI助手！" }
+                ],
+                chatList: [],
+                currentSessionId: null,
+                isStreaming: false
+            };
+        },
+        methods: {
+            async ollamaStream() {
+                if (!this.setRegex()) return;
+
+                const userMsg = this.message.trim();
+                if (!userMsg || this.isStreaming) return;
+
+                this.isStreaming = true;
+                this.messages.push({ role: "user", type: "text", content: userMsg });
+                this.messages.push({ role: "assistant", type: "text", content: "千问正在思考中······" });
+                this.scrollTobottom();
+                this.message = "";
+
+                const thinkingIndex = this.messages.length - 1;
+                const systemRole = "你是一个幽默、专业的智能助手，人工智能中的刘亦菲！";
+
+                let aiContent = "";
+                let finalSessionId = this.currentSessionId;
+
+                try {
+                    const response = await fetch("/api/qwen/chat_stream_json", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ role: systemRole, userMessage: userMsg })
+                    });
+
+                    if (!response.ok) throw new Error("请求失败");
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = "";
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || '';
+                        for (const line of lines) {
+                            if (line.startsWith('data:')) {
+                                const payload = line.substring(5).trim();
+                                if (payload === '[DONE]' || !payload) continue;
+                                try {
+                                    const parsed = JSON.parse(payload);
+                                    if (parsed.content != null) {
+                                        aiContent += parsed.content;
+                                        this.$set(this.messages, thinkingIndex, {
+                                            role: "assistant",
+                                            type: "text",
+                                            content: aiContent
+                                        });
+                                        this.scrollTobottom();
+                                    }
+                                } catch (e) { /* ignore */ }
+                            }
+                        }
+                    }
+
+                    aiContent = aiContent.trim() || "AI 暂未返回有效内容，请稍后重试。";
+                    this.$set(this.messages, thinkingIndex, {
+                        role: "assistant",
+                        type: "text",
+                        content: aiContent
+                    });
+
+                    // 保存到数据库
+                    const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+                    const saveData = {
+                        question: userMsg,
+                        answer: aiContent,
+                        username: this.username,
+                        createTime: now,
+                        sessionId: this.currentSessionId || 0
+                    };
+
+                    const res = await axios.post("/api/history/saveToMySQL", saveData);
+                    finalSessionId = res.data.data;
+
+                    if (this.currentSessionId === null) {
+                        this.currentSessionId = finalSessionId;
+                        this.chatList.unshift({
+                            id: finalSessionId,
+                            question: userMsg,
+                            createTime: now
+                        });
+                    }
+
+                } catch (err) {
+                    this.$set(this.messages, thinkingIndex, {
+                        role: "assistant",
+                        type: "text",
+                        content: "服务暂时不可用，请稍后重试。"
+                    });
+                    this.$message.error("消息发送失败！");
+                } finally {
+                    this.isStreaming = false;
+                }
+            },
+
+            newChat() {
+                const hasUserMessage = this.messages.some(msg => msg.role === 'user');
+                if (!hasUserMessage && this.currentSessionId === null) {
+                    this.$message.info("当前已是新对话！");
+                    return;
+                }
+                this.messages = [{
+                    role: "assistant",
+                    type: "text",
+                    content: "你好，我是你的AI助手，请输入新的对话内容！"
+                }];
+                this.currentSessionId = null;
+                this.message = '';
+                this.scrollTobottom();
+            },
+
+            switchChat(sessionId) {
+                axios.get("/api/history/switchHistory", { params: { sessionId } }).then(res => {
+                    this.messages = res.data.data;
+                    this.currentSessionId = sessionId;
+                    this.scrollTobottom();
+                });
+            },
+
+            loadChatHistory() {
+                axios.get('/api/history/getHistory', { params: { username: this.username } })
+                    .then(res => {
+                        this.chatList = res.data.data.map(h => ({
+                            id: h.sessionId,
+                            question: h.question,
+                            createTime: h.createTime
+                        }));
+                    });
+            },
+
+            scrollTobottom() {
+                this.$nextTick(() => {
+                    const container = document.getElementById('messages');
+                    if (container) container.scrollTop = container.scrollHeight;
+                });
+            },
+
+            renderMarkdown(text) {
+                if (typeof text !== 'string') return '';
+                const rawHtml = marked.parse(text);
+                return DOMPurify.sanitize(rawHtml);
+            },
+
+            setRegex() {
+                if (!localStorage.getItem("user")) {
+                    this.$message.warning("请登录后使用！");
+                    setTimeout(() => window.location.href = "/login", 1000);
+                    return false;
+                }
+                return true;
+            }
+        },
+
+        mounted() {
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    this.username = user?.userName || "游客";
+                } catch {
+                    this.username = "游客";
+                }
+            }
+            this.loadChatHistory();
+        }
+    });
+</script>
+</body>
+</html>

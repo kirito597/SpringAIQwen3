@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <!--上面是pom说明文件-->
+    <!--第一个配置：Spring Boot框架的父级依赖 (Java开发，必须导入该依赖)-->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.11</version><!--版本号-->
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <!--maven相关描述-->
+    <groupId>com.qwen.ai.www</groupId>
+    <artifactId>SpringAIQwen3</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>SpringAIQwen3</name>
+    <description>SpringAIQwen3</description>
+
+    <!--JDK版本号-->
+    <properties>
+        <java.version>24</java.version>
+    </properties>
+
+    <!--依赖存放位置-->
+    <dependencies>
+        <!--Spring Boot Web开发依赖 (前端代码或数据转发代码)-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--测试依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--mysql依赖-->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.2.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--持久化框架即mybatis-plus依赖-->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>3.5.15</version>
+        </dependency>
+
+        <!--thymeleaf依赖（访问前端代码的，解析前端代码）-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!--百度sdk依赖-->
+        <dependency>
+            <groupId>com.baidu.aip</groupId>
+            <artifactId>java-sdk</artifactId>
+            <version>4.16.0</version>
+            <!--排除它自带的 slf4j-simple，新版Spring boot不在使用slf4j -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!--ollama大模型（SpringAI）-->
+        <dependency>
+            <groupId> org.springframework.ai </groupId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

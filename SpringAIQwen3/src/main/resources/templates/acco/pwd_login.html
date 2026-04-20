@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>密码登录</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" th:href="@{/css/element-ui.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <script th:src="@{/js/vue.min.js}" type="text/javascript"></script>
+    <!-- 引入组件库 -->
+    <script th:src="@{/js/element-ui.js}"></script>
+    <script th:src="@{/js/axios.min.js}" type="text/javascript"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #E8F0E9 0%, #D1E0D4 100%);
+            min-height: 100vh;
+        }
+
+        .login-container {
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-form {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 420px;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 28px;
+            font-weight: 600;
+            color: #2D5A4B;
+            letter-spacing: 0.5px;
+        }
+
+        /* 覆盖Element UI输入框样式 */
+        .el-input__inner {
+            background: rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            border-radius: 30px !important;
+            height: 48px !important;
+            font-size: 15px !important;
+            color: #1E3A2F !important;
+            padding: 0 20px !important;
+            transition: all 0.3s ease;
+        }
+
+        .el-input__inner:focus {
+            background: rgba(255, 255, 255, 0.5) !important;
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .el-input__inner::placeholder {
+            color: #4A6B5C !important;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        /* 表单项间距 */
+        .el-form-item {
+            margin-bottom: 24px;
+        }
+
+        .login-button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .custom-button {
+            flex: 1;
+            height: 48px;
+            border-radius: 30px !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
+            border: none !important;
+            background: rgba(255, 255, 255, 0.3) !important;
+            backdrop-filter: blur(8px);
+            color: #1E3A2F !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            transition: all 0.3s ease !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-button:hover {
+            background: rgba(255, 255, 255, 0.5) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 30, 10, 0.15) !important;
+        }
+
+        .custom-button:active {
+            transform: translateY(0);
+        }
+
+        /* 人脸登录按钮微调 */
+        .face-button {
+            background: rgba(160, 220, 160, 0.35) !important;
+        }
+
+        /* 注册链接样式 */
+        .el-link {
+            font-size: 14px !important;
+            color: #2D5A4B !important;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .el-link:hover {
+            opacity: 1;
+            color: #1E3A2F !important;
+        }
+
+        /* 表单验证错误提示美化 */
+        .el-form-item.is-error .el-input__inner {
+            border-color: #F56C6C !important;
+            background: rgba(245, 108, 108, 0.1) !important;
+        }
+
+        .el-form-item__error {
+            color: #F56C6C !important;
+            font-size: 12px !important;
+            padding-left: 16px !important;
+            margin-top: 4px !important;
+        }
+
+        @media (max-width: 480px) {
+            .login-form {
+                width: 90%;
+                padding: 30px 20px;
+            }
+            .login-button-group {
+                flex-direction: column;
+            }
+            .custom-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="login-container">
+        <el-form ref="loginForm" :model="loginForm" :rules="loginRules" label-position="left" label-width="0px"
+                 class="login-form">
+            <h3 class="title">用户登录</h3>
+
+            <el-form-item prop="userPhone">
+                <el-input v-model="loginForm.userPhone" placeholder="请输入手机号"></el-input>
+            </el-form-item>
+
+            <el-form-item prop="password">
+                <el-input v-model="loginForm.password" type="password" placeholder="请输入密码"
+                          @keyup.enter.native="handleLogin"></el-input>
+            </el-form-item>
+
+            <el-form-item style="width: 100%;">
+                <div class="login-button-group">
+                    <el-button class="custom-button" @click="handleLogin" :loading="loading">登录</el-button>
+                    <el-button class="custom-button face-button" @click="goFaceLogin">人脸登录</el-button>
+                </div>
+            </el-form-item>
+
+            <center>
+                <el-link :underline="false" type="primary" href="/go.regis">没有账号，点我注册一个</el-link>
+            </center>
+
+        </el-form>
+    </div>
+</div>
+<script>
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                loading: false,
+                loginForm: {
+                    userPhone: '',
+                    password: '',
+                },
+
+                loginRules: {
+                    userPhone: [
+                        {required: true, message: '请输入用户名', trigger: 'blur'}
+                    ],
+                    password: [
+                        {required: true, message: '请输入密码', trigger: 'blur'}
+                    ]
+                }
+            };
+        },
+        methods: {
+            handleLogin() {
+                //通过ref检测dom表单数据
+                this.$refs.loginForm.validate(valid => {
+                    if (valid) {
+                        this.loading = true;
+                        axios({
+                            url: '/api/acc/loginPwd',
+                            method: 'GET',
+                            params:{
+                                userPhone:this.loginForm.userPhone,
+                                password:this.loginForm.password,
+                            },
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                        }).then(response => {
+                            this.loading = false;
+                            if (response.data.code === 200) {
+                                this.$message.success(response.data.msg);
+                                localStorage.setItem("user",JSON.stringify(response.data.data)) //获取登录的用户信息,将后端数据以JSON格式保存到user对象
+                                setTimeout(()=>{
+                                    window.location.href="http://localhost:8080/"
+                                }, 1000)
+                            } else {
+                                this.$message.error(response.data.msg);
+                            }
+                        }).catch(err => {
+                            console.log(err);
+                            this.loading = false;
+                            this.$message.error('服务器错误，请稍后重试！');
+                        })
+                    } else {
+                        //console.log('验证失败');
+                        return false;
+                    }
+                });
+            },
+
+            goFaceLogin() {
+                window.location.href = "http://localhost:8080/face.login";
+            },
+        }
+    })
+</script>
+</body>
+</html>

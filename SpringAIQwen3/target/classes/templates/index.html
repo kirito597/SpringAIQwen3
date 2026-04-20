@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>智能AI系统 · 美学版</title>
+
+    <!-- 引入字体 Inter (更现代) 和 图标库 (Element UI 图标已存在，但额外加一些优雅回退) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/element-ui.css}">
+    <script type="text/javascript" th:src="@{/js/vue.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/element-ui.js}"></script>
+    <script type="text/javascript" th:src="@{/js/axios.min.js}"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            /* 更精致、有质感的渐变背景 —— 柔雾青瓷色 */
+            background: radial-gradient(circle at 10% 30%, #D4E9E2 0%, #A3C4B1 70%, #7FA394 100%);
+            min-height: 100vh;
+            padding: 0;
+            backdrop-filter: blur(2px); /* 轻微基底模糊增加氛围 */
+        }
+
+        /* 顶部导航栏 — 重新设计：半透明玻璃，光晕，轻盈 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.38);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            color: #1E3A2F; /* 深绿灰文字 */
+            padding: 0 36px;
+            height: 76px;
+            box-shadow: 0 10px 30px -8px rgba(0, 40, 20, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+            z-index: 100;
+            transition: all 0.3s;
+        }
+
+        /* 导航按钮 —— 柔和胶囊设计，提升精致感 */
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-buttons a {
+            color: #1E3A2F;
+            text-decoration: none;
+            font-weight: 520;
+            font-size: 15px;
+            letter-spacing: 0.2px;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+            border-radius: 60px; /* 胶囊圆角 */
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            display: inline-block;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 30, 10, 0.05);
+        }
+
+        .nav-buttons a:hover {
+            color: #0F2C21;
+            transform: translateY(-4px) scale(1.02);
+            background: rgba(255, 255, 255, 0.7);
+            border-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 16px 28px -8px rgba(30, 60, 45, 0.25);
+        }
+
+        .nav-buttons a.active {
+            color: #0A2A1E !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+            border-color: white !important;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 20px 32px -12px #20443366, 0 0 0 1px rgba(255,255,255,0.9) inset;
+            font-weight: 600;
+        }
+
+        /* 用户信息区 - 更加通透柔和 */
+        .user-info {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            padding: 6px 18px 6px 12px;
+            border-radius: 60px;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 10px rgba(0, 30, 10, 0.05);
+        }
+        .user-info:hover {
+            background: rgba(255, 255, 255, 0.5);
+            border-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -8px #1F4A3766;
+        }
+        .user-info img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+            object-fit: cover;
+            background: #e0e0e0;
+        }
+        .user-info:hover img {
+            transform: scale(1.08) rotate(2deg);
+            border-color: white;
+            box-shadow: 0 8px 20px rgba(46, 125, 50, 0.3);
+        }
+        .username {
+            font-weight: 530;
+            font-size: 15px;
+            color: #153629;
+            letter-spacing: 0.2px;
+            margin-right: 4px;
+        }
+
+        /* 下拉菜单 —— 毛玻璃卡片，更优雅 */
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 70px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: 28px;
+            box-shadow: 0 25px 45px -18px #152E24, 0 0 0 1px rgba(255,255,255,0.6) inset;
+            padding: 12px 8px;
+            min-width: 170px;
+            z-index: 2000;
+            animation: slideDown 0.25s ease-out;
+            transform-origin: top right;
+        }
+
+        @keyframes slideDown {
+            0% { opacity: 0; transform: scale(0.85) translateY(-15px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .dropdown-item {
+            padding: 14px 24px;
+            cursor: pointer;
+            font-size: 14.5px;
+            color: #1C3D2D;
+            display: flex;
+            align-items: center;
+            transition: all 0.25s ease;
+            border-radius: 40px;
+            margin: 4px 4px;
+            white-space: nowrap;
+            background: transparent;
+            font-weight: 480;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(46, 125, 80, 0.2);
+            color: #0D401F;
+            transform: translateX(6px) scale(1.01);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 14px rgba(46, 125, 80, 0.15);
+        }
+
+        .dropdown-item i {
+            margin-right: 14px;
+            font-size: 18px;
+            vertical-align: middle;
+            color: #367A4D;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            padding: 40px 44px;
+            min-height: calc(100vh - 76px);
+            background: transparent;
+        }
+
+        /* iframe 容器 — 玻璃质感 + 圆润大圆角 */
+        .iframe-container {
+            width: 100%;
+            height: calc(100vh - 156px); /* 适应新 header 高度和 padding */
+            border: none;
+            border-radius: 36px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px -20px #1A3B2B, 0 0 0 1px rgba(255,255,255,0.3) inset;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(5px);
+            transition: box-shadow 0.4s;
+        }
+
+        .iframe-container:hover {
+            box-shadow: 0 35px 70px -18px #10382A;
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                padding: 16px 20px;
+                height: auto;
+                gap: 16px;
+            }
+            .nav-buttons {
+                margin-bottom: 6px;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+            .nav-buttons a {
+                margin: 0;
+                padding: 8px 18px;
+                font-size: 13px;
+            }
+            .main-content {
+                padding: 24px 16px;
+            }
+            .iframe-container {
+                height: calc(100vh - 210px);
+                border-radius: 28px;
+            }
+            .user-info {
+                padding: 5px 16px 5px 8px;
+            }
+        }
+
+        /* 为兼容原有 element 图标颜色微调 */
+        .el-icon-arrow-down {
+            font-size: 16px !important;
+            color: #1E4A33;
+            transition: transform 0.2s;
+        }
+        .user-info:hover .el-icon-arrow-down {
+            transform: translateY(2px);
+        }
+
+        /* 头像占位图如果加载失败显示优雅背景 */
+        img[alt="头像"] {
+            background: linear-gradient(145deg, #B8D9C6, #95BCA6);
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <!-- 顶部导航栏 - 全新外观，功能不变 -->
+    <div class="header">
+        <!-- 左侧导航 a 标签 -->
+        <div class="nav-buttons">
+            <a
+                    v-for="item in navItems"
+                    :key="item.name"
+                    :href="item.url"
+                    @click.prevent="changePage(item.url)"
+                    :class="{ active: currentUrl === item.url }"
+            >
+                {{ item.label }}
+            </a>
+        </div>
+
+        <!-- 右侧用户信息 - 保留所有逻辑，视觉美化 -->
+        <div class="user-info" @click="toggleDropdown" ref="userRef">
+            <img src="./static/image/1.jpg" alt="头像" />
+            <span class="username">{{ username }}</span>
+            <i class="el-icon-arrow-down" style="margin-left: 4px;"></i>
+
+            <div v-show="showDropdown" class="dropdown-menu" ref="dropdownRef">
+                <div class="dropdown-item" @click="handleCommand('profile')">
+                    <i class="el-icon-user"></i> 个人中心
+                </div>
+                <div class="dropdown-item" @click="handleCommand('logout')">
+                    <i class="el-icon-switch-button"></i> 退出登录
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容区域：iframe 嵌入子页面 (逻辑不变) -->
+    <div class="main-content">
+        <iframe
+                ref="pageFrame"
+                :src="currentUrl"
+                class="iframe-container"
+                frameborder="0"
+        ></iframe>
+    </div>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                username: "",
+                showDropdown: false,
+                currentUrl: '/index.page', // 默认首页
+                navItems: [
+                    { name: "home", label: "系统首页", url: "/index.page" },
+                    { name: "detection", label: "智能问答", url: "/qwen_no_stream" },
+                    { name: "realtime", label: "流式问答", url: "/qwen_stream" },
+                    { name: "records", label: "记忆模式", url: "/qwen_history" },
+                ],
+            };
+        },
+        methods: {
+            changePage(url) {
+                this.currentUrl = url;
+            },
+            toggleDropdown() {
+                this.showDropdown = !this.showDropdown;
+            },
+            handleCommand(command) {
+                this.showDropdown = false;
+                if (command === "profile") {
+                    this.$message.info('正在跳转到个人中心...');
+                    window.location.href = "http://localhost:8080/home";
+                } else if (command === "logout") {
+                    this.$confirm('确定要退出当前账号吗？', '温馨提示', {
+                        confirmButtonText: '确定退出',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        sessionStorage.clear();  //清除浏览器session域变量.
+                        localStorage.clear();  //清纯缓存.
+                        this.$message.info("1秒后退出登录");
+                        setTimeout(() => {
+                            window.location.href = "http://localhost:8080/";
+                        }, 1000);
+                    });
+                }
+            }
+        },
+        mounted() {
+            // 获取登录存储的user对象 —— 完全保留原逻辑，仅添加异常fallback
+            try {
+                const user = JSON.parse(localStorage.getItem("user"));
+                this.username = user?.userName || "探索者";
+            } catch {
+                this.username = "智能伙伴";  // 如果解析失败，显示友好名称
+            }
+
+            // 点击外部关闭下拉 (逻辑不变)
+            document.addEventListener('click', (e) => {
+                if (
+                    this.showDropdown &&
+                    !this.$refs.userRef.contains(e.target) &&
+                    (!this.$refs.dropdownRef || !this.$refs.dropdownRef.contains(e.target))
+                ) {
+                    this.showDropdown = false;
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

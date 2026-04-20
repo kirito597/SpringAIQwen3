@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>人脸注册</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" th:href="@{/css/element-ui.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <script th:src="@{/js/vue.min.js}" type="text/javascript"></script>
+    <!-- 引入组件库 -->
+    <script th:src="@{/js/element-ui.js}"></script>
+    <script th:src="@{/js/axios.min.js}" type="text/javascript"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #E8F0E9 0%, #D1E0D4 100%);
+            min-height: 100vh;
+        }
+
+        .login-container {
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-form {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 420px;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 28px;
+            font-weight: 600;
+            color: #2D5A4B;
+            letter-spacing: 0.5px;
+        }
+
+        /* 覆盖Element UI输入框样式 */
+        .el-input__inner {
+            background: rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            border-radius: 30px !important;
+            height: 48px !important;
+            font-size: 15px !important;
+            color: #1E3A2F !important;
+            padding: 0 20px !important;
+            transition: all 0.3s ease;
+        }
+
+        .el-input__inner:focus {
+            background: rgba(255, 255, 255, 0.5) !important;
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .el-input__inner::placeholder {
+            color: #4A6B5C !important;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        .el-form-item {
+            margin-bottom: 24px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .custom-button {
+            flex: 1;
+            height: 48px;
+            border-radius: 30px !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
+            border: none !important;
+            background: rgba(255, 255, 255, 0.3) !important;
+            backdrop-filter: blur(8px);
+            color: #1E3A2F !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            transition: all 0.3s ease !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .custom-button:hover {
+            background: rgba(255, 255, 255, 0.5) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 30, 10, 0.15) !important;
+        }
+
+        .custom-button:active {
+            transform: translateY(0);
+        }
+
+        .face-button {
+            background: rgba(160, 220, 160, 0.35) !important;
+        }
+
+        /* 人脸注册容器 */
+        .face-register-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #E8F0E9 0%, #D1E0D4 100%);
+        }
+
+        .video-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #2C4A3E;
+            margin-bottom: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        video, .video-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .phone-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #2D5A4B;
+            font-weight: 500;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 480px) {
+            .login-form {
+                width: 90%;
+                padding: 30px 20px;
+            }
+            .video-card {
+                padding: 24px;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            .custom-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- 注册表单页 -->
+    <div class="login-container" v-show="!isCameraActive">
+        <el-form ref="registerForm" :model="registerForm" :rules="registerRules" label-position="left" label-width="0px"
+                 class="login-form">
+            <h3 class="title">用户注册</h3>
+
+            <el-form-item prop="userPhone">
+                <el-input v-model="registerForm.userPhone" placeholder="请输入手机号码"></el-input>
+            </el-form-item>
+
+            <el-form-item prop="password">
+                <el-input v-model="registerForm.password" type="password" placeholder="请输入密码"></el-input>
+            </el-form-item>
+
+            <el-form-item>
+                <div class="button-group">
+                    <el-button class="custom-button" @click="initCamera">打开摄像头</el-button>
+                    <el-button class="custom-button face-button" @click="goPasswordLogin">返回登录</el-button>
+                </div>
+            </el-form-item>
+        </el-form>
+    </div>
+
+    <!-- 人脸拍照页 -->
+    <div class="face-register-container" v-show="isCameraActive">
+        <div class="video-card">
+            <div class="phone-info" v-if="registerForm.userPhone">
+                手机号：{{ registerForm.userPhone }}
+            </div>
+
+            <div class="video-wrapper" v-show="!capturedImage">
+                <video ref="video" autoplay></video>
+                <canvas ref="canvas" style="display: none;"></canvas>
+            </div>
+            <div class="video-wrapper" v-show="capturedImage">
+                <img :src="capturedImage" alt="captured face" />
+            </div>
+
+            <div class="button-group">
+                <el-button class="custom-button" @click="resetVideo" v-if="capturedImage">重新拍照</el-button>
+                <el-button class="custom-button" @click="capture" v-if="!capturedImage">拍照</el-button>
+                <el-button class="custom-button face-button" @click="register" v-if="capturedImage">注册账号</el-button>
+                <el-button class="custom-button" @click="cancelCamera" v-if="!capturedImage">取消</el-button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    new Vue({
+        el: "#app",
+        data: {
+            isCameraActive: false,
+            capturedImage: null,
+            loading: false,
+
+            registerForm: {
+                userPhone: "",
+                password: '',
+                baseImage: ''
+            },
+
+            registerRules: {
+                userPhone: [
+                    {required: true, message: '请输入手机号码', trigger: 'blur'}
+                ],
+                password: [
+                    {required: true, message: '请输入密码', trigger: 'blur'}
+                ]
+            }
+        },
+
+        methods: {
+            initCamera() {
+                this.$refs.registerForm.validate(valid => {
+                    if (valid) {
+                        if (this.isCameraActive) return;
+
+                        navigator.mediaDevices.getUserMedia({video: true})
+                            .then(stream => {
+                                this.$refs.video.srcObject = stream;
+                                this.isCameraActive = true;
+                                this.capturedImage = null;
+                                this.registerForm.baseImage = '';
+                            })
+                            .catch(err => {
+                                console.error("摄像头访问错误:", err);
+                                this.$message.error("无法访问摄像头，请允许摄像头权限");
+                            });
+                    } else {
+                        this.$message.error('请填写完整信息');
+                    }
+                });
+            },
+
+            capture() {
+                const canvas = this.$refs.canvas;
+                const video = this.$refs.video;
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const baseImage = canvas.toDataURL('image/jpeg');
+                this.capturedImage = baseImage;
+                this.registerForm.baseImage = baseImage.split(',')[1];
+
+                // 停止摄像头
+                const stream = this.$refs.video.srcObject;
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    this.$refs.video.srcObject = null;
+                }
+
+                this.$message.success("拍照成功");
+            },
+
+            register() {
+                if (!this.registerForm.baseImage) {
+                    this.$message.warning("请先拍照");
+                    return;
+                }
+
+                axios({
+                    method: 'POST',
+                    url: '/api/acc/register',
+                    data: JSON.stringify(this.registerForm),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(res => {
+                    if (res.data.code === 200) {
+                        this.$message.success(res.data.msg);
+                        setTimeout(() => {
+                            window.location.href = "/pwd_login";
+                        }, 1000);
+                    } else {
+                        this.$message.error(res.data.msg);
+                        this.resetVideo();
+                    }
+                }).catch(error => {
+                    console.error(error);
+                    this.$message.error('服务器错误，请稍后重试！');
+                    this.resetVideo();
+                });
+            },
+
+            goPasswordLogin() {
+                window.location.href = "http://localhost:8080/pwd_login";
+            },
+
+            cancelCamera() {
+                const stream = this.$refs.video?.srcObject;
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    this.$refs.video.srcObject = null;
+                }
+                this.isCameraActive = false;
+                this.capturedImage = null;
+                this.registerForm.baseImage = '';
+            },
+
+            resetVideo() {
+                this.capturedImage = null;
+                this.registerForm.baseImage = '';
+                this.initCamera();
+            }
+        },
+
+        beforeDestroy() {
+            const stream = this.$refs.video?.srcObject;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+    });
+</script>
+</body>
+</html>

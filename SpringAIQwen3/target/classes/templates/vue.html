@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!--vue使用方法：1.导入vue.js文件-->
+    <!-- 引入样式 -->
+    <link rel="stylesheet" th:href="@{/css/element-ui.css}">
+    <script th:src="@{/js/vue.min.js}" type="text/javascript"></script>
+    <!-- 引入组件库 -->
+    <script th:src="@{/js/element-ui.js}"></script>
+    <script th:src="@{/js/axios.min.js}" type="text/javascript"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>-->
+</head>
+<body>
+<!--2.声明vue的作用域，在div标签中进行说明，使用 id='属性名字'进行声明-->
+<div id="app">
+    <p>----------v-model数据双向绑定----------</p>
+    age:<input type="text" v-model="age"/><br>
+    flo:<input type="text" v-model="flo"><br>
+    <!--获取对象中的某个变量的数据-->
+    user.username:<input type="text" v-model="user.username"><br>
+    userObj:<input type="text" v-model="userObj[1].username"><br>
+    <p>=============单击事件=============</p>
+    手机:<input type="text" v-model="formUser.userPhone"/><br>
+    密码:<input type="password" v-model="formUser.password"/><br>
+    <button type="button" @click="login">登录</button>
+</div>
+<!--3.创建vue对象，在script标签中进行创建-->
+<script>
+    new Vue({
+        /*4.绑定vue的作用域，在创建的vue对象中进行绑定，通过el属性进行绑定*/
+        el:"#app",
+        /*5.数据变量说明（变量）*/
+        data(){
+            return{
+                //变量（JavaScript数据类型：整型、浮点数、布尔值、字符串、JS对象）.
+                age:27,  //整型.
+                flo:30.303,  //浮点数.
+                bol:true,  //布尔值.
+                str:"这期",  //字符串.
+                lists:["神","了"],
+                user:{username:"马嘉祺",age:30,birthday:"1996-01-01"},
+                userObj:[
+                    {username:"马爸爸",age:"58"},
+                    {username: "小马哥",age:"30"}
+                ],
+                formUser:{
+                    userPhone:"",
+                    password:""
+                }
+            }
+        },
+        //方法声明：div中使用的所有事件都需要一个方法.
+        methods:{
+            login(){
+                console.log("登录按钮。。。。")
+                console.log(this.formUser.userPhone)
+                console.log(this.formUser.password)
+                axios({
+                    url:"/api/acc/loginPwd",//请求地址.
+                    method:"GET",//请求方式，默认是GET.
+                    headers:{"Content-Type":"application/json"},//使用json数据传值.
+                    // data:null,表示前端发送给后端接口的数据（controller）.
+                    params:{
+                        userPhone:this.formUser.userPhone,
+                        password:this.formUser.password,
+                    }
+                }).then(response=>{//执行成功时，修改前端传到后端的参数，response就是后端返回的值.
+                    console.log(response)
+                    if(response.data.code===200){
+                        this.message.success(response.data.msg);
+                        setTimeout(()=>{
+                            window.location.href="https://localhost:8080/"
+                        },1000)
+                    }else{
+                        this.$message.error(response.data.msg);
+                    }
+
+                }).catch(error=>{
+                    this.message.error("服务器错误，请稍后重试！")
+                })
+            }
+        },
+
+    })
+</script>
+
+</body>
+</html>
