@@ -1,0 +1,2 @@
+# SpringAIQwen3
+基于springboot框架和千问3大模型的智能ai对话系统
